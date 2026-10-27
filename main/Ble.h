@@ -64,7 +64,6 @@ class Advert {
 using AdvertCallback = void (*)(const Advert&);
 
 void Init(const char* deviceName, AdvertCallback cb);  // start host, wait for sync
-void DeleteAllBonds();
 bool StartScan();
 void StopScan();
 bool IsScanning();

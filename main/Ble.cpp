@@ -423,8 +423,6 @@ void Init(const char* deviceName, AdvertCallback cb) {
     xSemaphoreTake(syncSem, portMAX_DELAY);
 }
 
-void DeleteAllBonds() { ble_store_clear(); }
-
 bool StartScan() {
     if (scanning) return true;
     struct ble_gap_disc_params p = {};
@@ -561,7 +559,10 @@ bool ReadPeerIrk(uint16_t connHandle, std::string& irkHex) {
 void LogBondedIrks() {
     ble_addr_t peers[8];
     int n = 0;
-    if (ble_store_util_bonded_peers(peers, &n, 8) != 0) return;
+    if (ble_store_util_bonded_peers(peers, &n, 8) != 0) {
+        Log.println("LogBondedIrks: failed to read bonded peers from the store");
+        return;
+    }
     for (int i = 0; i < n; i++) {
         struct ble_store_key_sec key = {};
         key.peer_addr = peers[i];
