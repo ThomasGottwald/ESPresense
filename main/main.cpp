@@ -175,6 +175,11 @@ bool sendTelemetry(unsigned int totalSeen, unsigned int totalFpSeen, unsigned in
  * On unrecoverable connection failure this function will reboot the device (calls ESP.restart()). The captive
  * portal wait callback can also trigger a restart if the portal timeout elapses.
  */
+// IRK-capture bench build only: set when setupNetwork() falls through with no network, so the
+// reconnect() timer (started unconditionally by reportSetup()/connectToMqtt() below) doesn't
+// esp_restart() every ~3s trying to reconnect to a network that was never configured.
+static bool benchNoNetwork = false;
+
 void setupNetwork() {
     Log.println("Setup network");
     GUI::Connected(false, false);
@@ -256,8 +261,13 @@ void setupNetwork() {
     };
     std::string hostname = "espresense-" + kebabify(room);
 
-    if (!Network::connect(ethernetType, 20, wifiTimeout, hostname)) {
+    // portal=false: Network::portal() is [[noreturn]] (loops until portalTimeout, then
+    // esp_restart()s and re-enters "First contact!" - an effective reboot loop), which would
+    // otherwise run before connect() ever gets to return false. Suppress it so a failed/absent
+    // WiFi connect falls straight through here instead (IRK-capture bench build).
+    if (!Network::connect(ethernetType, 20, wifiTimeout, hostname, false)) {
         Log.println("WiFi connect failed - continuing without network (IRK-capture bench build)");
+        benchNoNetwork = true;
         return;
     }
 
@@ -369,6 +379,7 @@ void onMqttMessage(const char *topic, const char *payload) {
 // Every 3 s: bring the network back if it dropped, kick MQTT, and give up (restart) after 50
 // tries. esp_mqtt reconnects on its own once the network is up; this is the backstop.
 void reconnect(TimerHandle_t) {
+    if (benchNoNetwork) return;  // IRK-capture bench build: no network by design, don't reboot over it.
     if (Network::isOnline() && Mqtt::connected()) {
         reconnectTries = 0;
         return;
