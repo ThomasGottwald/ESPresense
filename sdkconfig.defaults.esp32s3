@@ -6,3 +6,6 @@ CONFIG_BT_CTRL_BLE_MAX_ACT=4
 CONFIG_BT_CTRL_BLE_SCAN_DUPL=n
 # Waveshare ESP32-S3-ETH (W5500 over SPI); the S3 has no RMII EMAC.
 CONFIG_ETH_SPI_ETHERNET_W5500=y
+# sdkconfig.defaults sets DIO, which caused a P0 boot-loop (RTCWDT_RTC_RST) on this
+# same board family (see ESP_camwatch/BACKLOG.md item #8). Override to QIO for this board.
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y

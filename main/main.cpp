@@ -256,8 +256,10 @@ void setupNetwork() {
     };
     std::string hostname = "espresense-" + kebabify(room);
 
-    if (!Network::connect(ethernetType, 20, wifiTimeout, hostname))
-        esp_restart();
+    if (!Network::connect(ethernetType, 20, wifiTimeout, hostname)) {
+        Log.println("WiFi connect failed - continuing without network (IRK-capture bench build)");
+        return;
+    }
 
     GUI::Connected(true, false);
 
