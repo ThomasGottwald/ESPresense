@@ -161,9 +161,12 @@ void dnsTask(void* arg) {
         uint8_t offerDns = OFFER_DNS;
         esp_netif_dhcps_option(apNetif, ESP_NETIF_OP_SET, ESP_NETIF_DOMAIN_NAME_SERVER, &offerDns, sizeof(offerDns));
         // RFC 8910 captive-portal URI (DHCP option 114): phones open the portal without probing.
+        // Used by name (ESP_NETIF_CAPTIVEPORTAL_URI) on IDF releases new enough to have added
+        // it to esp_netif_dhcp_option_id_t; the locally installed v5.3.1 doesn't yet, so use the
+        // raw RFC value directly - stable across IDF versions, unlike the named enum member.
         static char portalUri[32];
         snprintf(portalUri, sizeof(portalUri), "http://%s/", ipToStr(apInfo.ip).c_str());
-        esp_netif_dhcps_option(apNetif, ESP_NETIF_OP_SET, ESP_NETIF_CAPTIVEPORTAL_URI, portalUri, strlen(portalUri));
+        esp_netif_dhcps_option(apNetif, ESP_NETIF_OP_SET, (esp_netif_dhcp_option_id_t)114, portalUri, strlen(portalUri));
         esp_netif_dhcps_start(apNetif);
     }
     Log.println("Starting access point for configuration portal.");

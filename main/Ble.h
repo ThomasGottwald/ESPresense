@@ -10,6 +10,19 @@
 #include "host/ble_hs.h"
 #include "host/ble_uuid.h"
 
+// NimBLE's os/os.h (pulled in transitively above) defines unguarded `#define max(a,b)` /
+// `#define min(a,b)` for its own internal C code. Left defined, these mangle any later
+// std::min/std::max usage (or <algorithm>/<functional>/<random> internals that happen to use
+// those identifiers) in any .cpp that includes Ble.h, directly or transitively - not needed by
+// anything in this project, so drop them here once, rather than reordering includes in every
+// affected .cpp as each one is discovered.
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 namespace Ble {
 
 // One advertisement report. Fields are parsed on demand from the raw payload (<= 31 bytes),
