@@ -45,6 +45,14 @@ void Setup() {
     minor = nodeId & 0xFFFF;
 
     beaconAdvLen = buildIBeaconAdv(beaconAdv, espresenseUUID.u128.value, major, minor, BleFingerprintCollection::txRefRssi);
+
+    // IRK-capture bench build: no "enroll" command is ever sent (no WS/MQTT - see
+    // ESP_bt/docs/PLAN.md step 2b), so set the same state Command("enroll", ...) would, directly.
+    // Loop() below (already running in scanTask, no network involved) advertises connectable
+    // from boot. newId/newName stay empty - per the comment above Command(), that derives the
+    // identity from the IRK itself, which is what we want for an anonymous bench pairing.
+    enrolling = true;
+    enrollingEndMillis = millis() + 86400000UL;
 }
 
 bool Loop() {

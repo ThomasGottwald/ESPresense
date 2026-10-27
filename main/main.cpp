@@ -543,7 +543,18 @@ void setup() {
 
     GUI::Setup(true);
     BleFingerprintCollection::Setup();
-    setupNetwork();
+    // IRK-capture bench build: skip networking entirely. setupNetwork() would otherwise call
+    // Network::connect(), which either esp_restart()s on failure or enters Network::portal()
+    // (a no-return captive-AP loop) - both block scanTask (BLE/Enrollment) from ever starting,
+    // and neither is needed: the IRK prints to this serial log unconditionally once a bond
+    // completes, with no network/HttpWebServer/MQTT involved. See ESP_bt/docs/PLAN.md step 2a.
+    //
+    // benchNoNetwork must still be set here: reportSetup() below (unconditional) arms a 3s
+    // reconnect timer regardless of whether setupNetwork() ran at all, and reconnect() calls
+    // esp_restart() on its very first firing otherwise (Network::connect() failing with no WiFi
+    // configured) - a real reboot loop found via actual hardware testing, not hypothetical.
+    Log.println("IRK-capture bench build: skipping network setup entirely");
+    benchNoNetwork = true;
     Log.enableTcp(6053);
     Updater::Setup();
     GUI::Setup(false);
