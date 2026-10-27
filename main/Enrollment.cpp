@@ -56,7 +56,12 @@ void Setup() {
 }
 
 bool Loop() {
-    static bool lastEnrolling = true;
+    // IRK-capture bench build: Setup() now sets `enrolling = true` directly at boot (see the
+    // comment there). Defaulting this to `true` as well meant the edge-detector below never saw
+    // enrolling != lastEnrolling on the first call, so AdvertiseConnectable() was never invoked
+    // and the board advertised nothing at all. Default to `false` so that first call sees the
+    // true transition and actually starts HRM advertising.
+    static bool lastEnrolling = false;
     // tx_ref_rssi can change over MQTT; it's the payload's last byte. Refresh it here, on this
     // task, rather than from the MQTT callback, and re-advertise unless enrolling (the next switch
     // back to iBeacon picks it up).
