@@ -484,7 +484,9 @@ void onAdvert(const Ble::Advert &advert) {
 
 void scanTask(void *parameter) {
     Ble::Init("ESPresense", onAdvert);
-    Ble::DeleteAllBonds();
+    // IRK-capture bench build: upstream wipes all bonds on every boot (a fresh boot shouldn't
+    // remember a stale guest enrollment). That's exactly backwards for this build - the whole
+    // point is for the bond to survive a reboot so it can be read back. Skip it.
     Enrollment::Setup();
 
     if (!Ble::StartScan())
