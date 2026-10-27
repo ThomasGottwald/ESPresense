@@ -53,6 +53,11 @@ void Setup() {
     // identity from the IRK itself, which is what we want for an anonymous bench pairing.
     enrolling = true;
     enrollingEndMillis = millis() + 86400000UL;
+
+    // IRK-capture bench build: a bonded peer's IRK only otherwise prints once, the moment that
+    // specific bond completes - lost on any later reboot (e.g. reattaching the serial monitor
+    // resets the board). Dump every already-persisted bond's IRK here too, so it survives.
+    Ble::Server::LogBondedIrks();
 }
 
 bool Loop() {

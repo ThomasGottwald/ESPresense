@@ -64,7 +64,6 @@ class Advert {
 using AdvertCallback = void (*)(const Advert&);
 
 void Init(const char* deviceName, AdvertCallback cb);  // start host, wait for sync
-void DeleteAllBonds();
 bool StartScan();
 void StopScan();
 bool IsScanning();
@@ -106,6 +105,8 @@ int ConnectedCount();
 bool NotifyHeartRate(uint8_t flags, uint8_t bpm);
 void Disconnect(uint16_t connHandle);
 bool ReadPeerIrk(uint16_t connHandle, std::string& irkHex);  // from the bond, reversed hex as before
+void LogBondedIrks();  // IRK-capture bench build: dump every persisted bond's IRK at boot, so a
+                        // reboot (serial monitor reattach, power cycle, ...) never loses it again
 
 // Non-connectable raw advertisement (iBeacon), or connectable HRM advertising with scan response.
 bool AdvertiseRaw(const uint8_t* adv, size_t len);

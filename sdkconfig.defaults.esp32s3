@@ -9,3 +9,7 @@ CONFIG_ETH_SPI_ETHERNET_W5500=y
 # sdkconfig.defaults sets DIO, which caused a P0 boot-loop (RTCWDT_RTC_RST) on this
 # same board family (see ESP_camwatch/BACKLOG.md item #8). Override to QIO for this board.
 CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+# IRK-capture bench build: NimBLE's default bond store is RAM-only - any reboot (including
+# opening the USB-Serial/JTAG port, which resets this board) silently wipes the bond we need to
+# read back. Persist bonds to NVS so they survive.
+CONFIG_BT_NIMBLE_NVS_PERSIST=y

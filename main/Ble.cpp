@@ -423,8 +423,6 @@ void Init(const char* deviceName, AdvertCallback cb) {
     xSemaphoreTake(syncSem, portMAX_DELAY);
 }
 
-void DeleteAllBonds() { ble_store_clear(); }
-
 bool StartScan() {
     if (scanning) return true;
     struct ble_gap_disc_params p = {};
@@ -556,6 +554,32 @@ bool ReadPeerIrk(uint16_t connHandle, std::string& irkHex) {
         irkHex.push_back(hex[c & 15]);
     }
     return true;
+}
+
+void LogBondedIrks() {
+    ble_addr_t peers[8];
+    int n = 0;
+    if (ble_store_util_bonded_peers(peers, &n, 8) != 0) {
+        Log.println("LogBondedIrks: failed to read bonded peers from the store");
+        return;
+    }
+    for (int i = 0; i < n; i++) {
+        struct ble_store_key_sec key = {};
+        key.peer_addr = peers[i];
+        struct ble_store_value_sec bond;
+        if (ble_store_read_peer_sec(&key, &bond) != 0 || !bond.irk_present) continue;
+        static const char hex[] = "0123456789abcdef";
+        std::string irkHex;
+        for (int b = 0; b < 16; b++) {
+            auto c = bond.irk[15 - b];
+            irkHex.push_back(hex[c >> 4]);
+            irkHex.push_back(hex[c & 15]);
+        }
+        Log.print("Bonded peer ");
+        Log.print(addrStr(peers[i]));
+        Log.print(" irk:");
+        Log.println(irkHex);
+    }
 }
 
 bool AdvertiseRaw(const uint8_t* adv, size_t len) {
